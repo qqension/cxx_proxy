@@ -1,36 +1,28 @@
-# Build directories
-build/
-proxy_server/build/
-**/build/
+# Ignore everything
+*
+
+# But not these files/folders
+!proxy_server/
+!proxy_server/src/
+!proxy_server/include/
+!proxy_server/Makefile
+!LICENSE
+!README.md
+
+# Ignore specific files in proxy_server
+proxy_server/*.o
+proxy_server/proxy_server
+proxy_server/*.d
+proxy_server/*.so
+proxy_server/*.a
+proxy_server/*.out
+proxy_server/*.exe
 
 # IDE settings
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# Compiled files
-*.o
-*.obj
-*.exe
-*.out
-*.app
-*.dll
-*.so
-*.dylib
-
-# CMake generated files
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile
-*.cmake
-
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
 
 # OS generated files
 .DS_Store
