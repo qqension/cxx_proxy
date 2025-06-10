@@ -1,0 +1,20 @@
+[
+{
+  "directory": "/home/ension/proga/cxx_proxy/build",
+  "command": "/usr/bin/g++ -I/home/ension/proga/cxx_proxy/proxy_server/include -g -std=gnu++17 -o CMakeFiles/proxy_server.dir/src/main.cpp.o -c /home/ension/proga/cxx_proxy/proxy_server/src/main.cpp",
+  "file": "/home/ension/proga/cxx_proxy/proxy_server/src/main.cpp",
+  "output": "CMakeFiles/proxy_server.dir/src/main.cpp.o"
+},
+{
+  "directory": "/home/ension/proga/cxx_proxy/build",
+  "command": "/usr/bin/g++ -I/home/ension/proga/cxx_proxy/proxy_server/include -g -std=gnu++17 -o CMakeFiles/proxy_server.dir/src/proxy_server.cpp.o -c /home/ension/proga/cxx_proxy/proxy_server/src/proxy_server.cpp",
+  "file": "/home/ension/proga/cxx_proxy/proxy_server/src/proxy_server.cpp",
+  "output": "CMakeFiles/proxy_server.dir/src/proxy_server.cpp.o"
+},
+{
+  "directory": "/home/ension/proga/cxx_proxy/build",
+  "command": "/usr/bin/g++ -I/home/ension/proga/cxx_proxy/proxy_server/include -g -std=gnu++17 -o CMakeFiles/proxy_server.dir/src/filter_manager.cpp.o -c /home/ension/proga/cxx_proxy/proxy_server/src/filter_manager.cpp",
+  "file": "/home/ension/proga/cxx_proxy/proxy_server/src/filter_manager.cpp",
+  "output": "CMakeFiles/proxy_server.dir/src/filter_manager.cpp.o"
+}
+]

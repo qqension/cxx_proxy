@@ -1,0 +1,3 @@
+/home/ension/proga/cxx_proxy/proxy_server/build/CMakeFiles/proxy_server.dir
+/home/ension/proga/cxx_proxy/proxy_server/build/CMakeFiles/edit_cache.dir
+/home/ension/proga/cxx_proxy/proxy_server/build/CMakeFiles/rebuild_cache.dir

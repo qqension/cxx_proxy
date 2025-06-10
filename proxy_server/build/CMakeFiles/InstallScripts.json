@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/ension/proga/cxx_proxy/proxy_server/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
