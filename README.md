@@ -76,17 +76,6 @@ To build and run this project, you will need:
 
 ### Installing Dependencies
 
-#### Ubuntu/Debian
-```bash
-sudo apt update
-sudo apt install build-essential cmake libgtest-dev doxygen libssl-dev
-```
-
-#### Fedora
-```bash
-sudo dnf install gcc-c++ cmake gtest-devel doxygen openssl-devel
-```
-
 #### Arch Linux
 ```bash
 sudo pacman -S base-devel cmake gtest doxygen openssl
@@ -129,17 +118,10 @@ make -j$(nproc)
 
 ## Running the Server
 
-Start the proxy server with default settings:
-```bash
-./proxy_server/proxy_server
-```
-
 Or specify a custom port:
 ```bash
-./proxy_server/proxy_server 9090
+./proxy_server/proxy_server [server port] [web port]
 ```
-
-The web interface will be available at `http://localhost:8080` (or your custom port).
 
 ---
 
