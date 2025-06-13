@@ -11,7 +11,7 @@ Logger& Logger::get_instance() {
 }
 
 Logger::Logger() {
-    log_file_.open("proxy.log", std::ios::app);
+    log_file_.open("logs/proxy.log", std::ios::app);
 }
 
 Logger::~Logger() {

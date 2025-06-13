@@ -24,7 +24,7 @@ void WebUI::start() {
     });
 
     server_.Get("/logs", [this](const httplib::Request&, httplib::Response& res) {
-        std::ifstream log_file("proxy.log");
+        std::ifstream log_file("logs/proxy.log");
         std::stringstream buffer;
         buffer << log_file.rdbuf();
         res.set_content(buffer.str(), "text/plain");
