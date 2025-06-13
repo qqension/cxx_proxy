@@ -1,0 +1,69 @@
+# Ignore everything
+*
+
+# But not these files/folders
+!proxy_server/
+!proxy_server/src/
+!proxy_server/src/logger.cpp
+!proxy_server/include/
+!proxy_server/src/web_ui.cpp
+!proxy_server/include/logger.hpp
+!proxy_server/include/web_ui.hpp
+!proxy_server/include/web_ui.h
+!proxy_server/third_party/
+!proxy_server/third_party/httplib.h
+!proxy_server/Makefile
+!LICENSE
+!README.md
+
+# Logs directory handling
+!proxy_server/logs/           # Track the logs directory
+proxy_server/logs/*.log       # But ignore all .log files in it
+
+# Ignore specific files in proxy_server
+proxy_server/*.o
+proxy_server/proxy_server
+proxy_server/*.d
+proxy_server/*.so
+proxy_server/*.a
+proxy_server/*.out
+proxy_server/*.exe
+proxy_server/*.obj
+proxy_server/*.pdb
+proxy_server/*.ilk
+proxy_server/*.exp
+proxy_server/*.lib
+proxy_server/*.dll
+proxy_server/*.dylib
+proxy_server/*.app
+proxy_server/*.dSYM/
+proxy_server/build/
+proxy_server/cmake-build-*/
+proxy_server/CMakeFiles/
+proxy_server/CMakeCache.txt
+proxy_server/CMakeScripts/
+proxy_server/compile_commands.json
+proxy_server/CTestTestfile.cmake
+proxy_server/_deps/
+proxy_server/*.cmake
+proxy_server/Makefile.cmake
+proxy_server/*.ninja
+proxy_server/.ninja_deps
+proxy_server/.ninja_log
+
+# IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db 
