@@ -1,130 +1,125 @@
 # C++ Proxy Server
 
-A C++ implementation of a proxy server with web interface and logging capabilities.
+A modern C++ proxy server with web-based management interface, built using CMake.
 
 ## Overview
 
-This project implements a functional proxy server that can handle HTTP/HTTPS requests, filter content, and provide a web-based management interface. It includes features for request filtering, logging, and real-time monitoring through a web dashboard.
+This proxy server provides HTTP/HTTPS proxy functionality with a web-based management interface. It includes features like URL filtering, logging, and real-time monitoring.
 
 ## Features
 
-- **Proxy Functionality:**
-  - HTTP/HTTPS request handling
-  - Request/Response filtering
-  - Content modification capabilities
-  - Connection management
+- **Proxy Functionality**
+  - HTTP/HTTPS proxy support
+  - URL filtering and blacklisting
+  - Connection pooling
+  - Request/response caching
 
-- **Web Interface:**
+- **Web Interface**
   - Real-time monitoring dashboard
-  - Blacklist management
-  - Log viewer
-  - System status display
+  - Filter management
+  - Connection statistics
+  - System status
 
-- **Logging System:**
-  - Detailed request/response logging
-  - Error tracking
-  - Performance monitoring
-  - Configurable log levels (DEBUG, INFO, WARNING, ERROR)
+- **Logging System**
+  - Configurable log levels
+  - File-based logging
+  - Timestamp and log level tracking
+  - Log rotation
 
-- **Filter Management:**
-  - URL-based filtering
-  - Content-based filtering
-  - Blacklist/Whitelist support
+- **Filter Management**
+  - URL blacklisting
+  - Pattern-based filtering
   - Real-time filter updates
+  - Filter statistics
 
 ## Dependencies
 
-To build and run this project, you will need:
+- C++17 compatible compiler (g++ 8.0+ or clang++ 7.0+)
+- CMake 3.10 or higher
+- GTest (for unit tests)
+- Doxygen (for documentation)
 
-- g++ (with C++17 support or newer)
-- make
-- pthread library
-- doxygen (optional, for generating documentation)
+## Building
 
-## Building the Project
-
-The project uses Make for building. Follow these steps:
-
-1. Navigate to the proxy_server directory:
-   ```bash
-   cd proxy_server
-   ```
-
-2. Build the project:
-   ```bash
-   make
-   ```
-
-   This will create the following:
-   - `proxy_server` executable
-   - `logs` directory for log files
-
-3. Clean build files (optional):
-   ```bash
-   make clean
-   ```
-
-4. Generate documentation (optional):
-   ```bash
-   make docs
-   ```
-
-## Running the Server
-
-To start the proxy server:
+### Prerequisites
 
 ```bash
-./proxy_server [server_port] [web_page_port]
+# Install build dependencies
+sudo apt-get install build-essential cmake gtest libgtest-dev doxygen
 ```
 
-Where `[port]` is an optional port number (default is 8080).
+### Build Steps
+
+```bash
+# Create build directory
+mkdir build && cd build
+
+# Configure with CMake
+cmake ..
+
+# Build the project
+cmake --build .
+
+# Run tests
+ctest
+```
+
+## Running
+
+```bash
+# Start the proxy server (default port: 8080)
+./proxy_server [port]
+```
 
 ## Web Interface
 
-The web interface is accessible at:
-```
-http://localhost:8080
-```
-
-Features available through the web interface:
-- View real-time logs
-- Manage blacklist entries
-- Monitor system status
-- View connection statistics
+Access the web interface at `http://localhost:8080` to:
+- Monitor active connections
+- Manage URL filters
+- View system statistics
+- Configure proxy settings
 
 ## Project Structure
 
 ```
 .
-├── proxy_server/           # Main project directory
-│   ├── Doxyfile           # Doxygen configuration
-│   ├── Makefile           # Build configuration
+├── CMakeLists.txt          # Main CMake configuration
+├── proxy_server/
 │   ├── include/           # Header files
-│   │   ├── logger.hpp     # Logging system
-│   │   ├── web_ui.hpp     # Web interface
-│   │   └── filter_manager.hpp
-│   ├── src/               # Source files
-│   │   ├── logger.cpp
-│   │   ├── web_ui.cpp
-│   │   └── filter_manager.cpp
-│   ├── third_party/       # External dependencies
-│   │   └── httplib.h      # HTTP library
-│   └── logs/              # Log files directory
-├── README.md              # This file
-└── LICENSE                # Project License
+│   ├── src/              # Source files
+│   ├── third_party/      # Third-party dependencies
+│   └── Doxyfile.in       # Documentation template
+├── tests/                # Unit tests
+│   ├── CMakeLists.txt    # Test configuration
+│   └── test_*.cpp        # Test files
+├── build/               # Build directory
+└── logs/               # Log files
+```
+
+## Testing
+
+The project uses Google Test framework for unit testing. Tests are automatically built with the main project.
+
+```bash
+# Run all tests
+cd build
+ctest
+
+# Run specific test
+./tests/test_runner --gtest_filter=LoggerTest.*
 ```
 
 ## Documentation
 
-The project documentation can be generated using Doxygen:
+Generate documentation using Doxygen:
 
 ```bash
-cd proxy_server
-make docs
+cd build
+cmake --build . --target docs
 ```
 
-This will create HTML documentation in the `doc` directory. Open `doc/html/index.html` in your web browser to view the documentation.
+The documentation will be available in `build/doc/html/index.html`.
 
 ## License
 
-This project is licensed under the terms of the LICENSE file included in the repository.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

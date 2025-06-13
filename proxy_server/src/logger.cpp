@@ -4,6 +4,7 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <filesystem>
 
 Logger& Logger::get_instance() {
     static Logger instance;
@@ -11,7 +12,16 @@ Logger& Logger::get_instance() {
 }
 
 Logger::Logger() {
-    log_file_.open("logs/proxy.log", std::ios::app);
+    // Get the build directory path
+    auto build_dir = std::filesystem::current_path();
+    auto logs_dir = build_dir / "logs";
+    auto log_file_path = logs_dir / "proxy.log";
+    
+    // Create logs directory if it doesn't exist
+    std::filesystem::create_directories(logs_dir);
+    
+    // Open log file
+    log_file_.open(log_file_path, std::ios::app);
 }
 
 Logger::~Logger() {
