@@ -13,6 +13,7 @@
 !proxy_server/third_party/
 !proxy_server/third_party/httplib.h
 !proxy_server/Makefile
+!proxy_server/Doxyfile
 !LICENSE
 !README.md
 
