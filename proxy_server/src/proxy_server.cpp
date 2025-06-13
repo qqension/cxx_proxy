@@ -1,98 +1,82 @@
 #include "proxy_server.hpp"
-#include "filter_manager.hpp"
+#include "logger.hpp"
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <cstring>
-#include <stdexcept>
 #include <iostream>
 #include <algorithm>
 #include <sstream>
-#include <regex>
 #include <netdb.h>
-#include <errno.h>
-#include <ctime>
+#include <arpa/inet.h>
+#include <regex>
 
-ProxyServer::ProxyServer(const std::string& host, uint16_t port)
-    : host_(host), port_(port), server_socket_(-1), running_(false) {
-    if (!initialize_socket()) {
-        throw std::runtime_error("Failed to initialize socket");
-    }
+ProxyServer::ProxyServer(uint16_t port, FilterManager& filter_manager)
+    : port_(port), server_socket_(-1), running_(false), filter_manager_(filter_manager) {
+    Logger::get_instance().info("Proxy server initialized on port " + std::to_string(port));
+    filter_manager_.set_blacklist_mode(true);  // Enable blacklist mode by default
 }
 
 ProxyServer::~ProxyServer() {
     stop();
-    if (server_socket_ != -1) {
-        close(server_socket_);
-    }
 }
 
 bool ProxyServer::initialize_socket() {
     server_socket_ = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket_ < 0) {
-        std::cerr << "Socket creation failed: " << strerror(errno) << std::endl;
+        Logger::get_instance().error("Failed to create socket");
         return false;
     }
 
-    // Set socket options
     int opt = 1;
     if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-        std::cerr << "Setsockopt failed: " << strerror(errno) << std::endl;
-        close(server_socket_);
-        return false;
-    }
-
-    // Set non-blocking mode
-    int flags = fcntl(server_socket_, F_GETFL, 0);
-    if (flags < 0) {
-        std::cerr << "Fcntl get failed: " << strerror(errno) << std::endl;
-        close(server_socket_);
-        return false;
-    }
-    if (fcntl(server_socket_, F_SETFL, flags | O_NONBLOCK) < 0) {
-        std::cerr << "Fcntl set failed: " << strerror(errno) << std::endl;
-        close(server_socket_);
+        Logger::get_instance().error("Failed to set socket options");
         return false;
     }
 
     struct sockaddr_in address;
-    memset(&address, 0, sizeof(address));
     address.sin_family = AF_INET;
-    address.sin_addr.s_addr = inet_addr(host_.c_str());
+    address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(port_);
 
     if (bind(server_socket_, (struct sockaddr*)&address, sizeof(address)) < 0) {
-        std::cerr << "Bind failed: " << strerror(errno) << std::endl;
-        close(server_socket_);
+        Logger::get_instance().error("Failed to bind socket");
         return false;
     }
 
     if (listen(server_socket_, MAX_CONNECTIONS) < 0) {
-        std::cerr << "Listen failed: " << strerror(errno) << std::endl;
-        close(server_socket_);
+        Logger::get_instance().error("Failed to listen on socket");
         return false;
     }
 
+    Logger::get_instance().info("Socket initialized successfully");
     return true;
 }
 
 void ProxyServer::start() {
+    if (!initialize_socket()) {
+        throw std::runtime_error("Failed to initialize socket");
+    }
+
     running_ = true;
+    Logger::get_instance().info("Proxy server started");
     accept_connections();
 }
 
 void ProxyServer::stop() {
     running_ = false;
-    
-    // Wait for all worker threads to finish
+    if (server_socket_ >= 0) {
+        close(server_socket_);
+        server_socket_ = -1;
+    }
+
     for (auto& thread : worker_threads_) {
         if (thread.joinable()) {
             thread.join();
         }
     }
     worker_threads_.clear();
+    Logger::get_instance().info("Proxy server stopped");
 }
 
 bool ProxyServer::is_running() const {
@@ -100,254 +84,193 @@ bool ProxyServer::is_running() const {
 }
 
 void ProxyServer::accept_connections() {
-    fd_set read_fds;
-    struct timeval tv;
-    
     while (running_) {
-        FD_ZERO(&read_fds);
-        FD_SET(server_socket_, &read_fds);
-        
-        // Set timeout to 1 second
-        tv.tv_sec = 1;
-        tv.tv_usec = 0;
-        
-        int ret = select(server_socket_ + 1, &read_fds, nullptr, nullptr, &tv);
-        if (ret < 0) {
+        int client_socket = accept(server_socket_, nullptr, nullptr);
+        if (client_socket < 0) {
             if (running_) {
-                std::cerr << "Select failed: " << strerror(errno) << std::endl;
+                Logger::get_instance().error("Failed to accept connection");
             }
             continue;
         }
-        
-        if (ret == 0) {
-            // Timeout, continue the loop
-            continue;
-        }
-        
-        if (FD_ISSET(server_socket_, &read_fds)) {
-            struct sockaddr_in client_addr;
-            socklen_t client_len = sizeof(client_addr);
-            
-            int client_socket = accept(server_socket_, (struct sockaddr*)&client_addr, &client_len);
-            if (client_socket < 0) {
-                if (errno != EAGAIN && errno != EWOULDBLOCK) {
-                    std::cerr << "Accept failed: " << strerror(errno) << std::endl;
-                }
-                continue;
-            }
 
-            // Create a new thread to handle the connection
-            worker_threads_.emplace_back(&ProxyServer::handle_connection, this, client_socket);
-            
-            // Clean up finished threads
-            worker_threads_.erase(
-                std::remove_if(worker_threads_.begin(), worker_threads_.end(),
-                    [](std::thread& t) { return !t.joinable(); }),
-                worker_threads_.end()
-            );
-        }
+        // Clean up finished threads
+        worker_threads_.erase(
+            std::remove_if(worker_threads_.begin(), worker_threads_.end(),
+                [](std::thread& t) { return !t.joinable(); }),
+            worker_threads_.end()
+        );
+
+        // Start new thread for handling the connection
+        worker_threads_.emplace_back(&ProxyServer::handle_connection, this, client_socket);
     }
 }
 
 void ProxyServer::handle_connection(int client_socket) {
     char buffer[BUFFER_SIZE];
-    ssize_t bytes_received;
+    int bytes_read = read(client_socket, buffer, sizeof(buffer) - 1);
+    
+    if (bytes_read <= 0) {
+        Logger::get_instance().error("Failed to read from client socket");
+        close(client_socket);
+        return;
+    }
 
-    while ((bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0)) > 0) {
-        buffer[bytes_received] = '\0';
-        std::string request(buffer);
+    buffer[bytes_read] = '\0';
+    std::string request(buffer);
+    Logger::get_instance().debug("Received request:\n" + request);
+
+    // Parse the request
+    std::istringstream request_stream(request);
+    std::string method, target, version;
+    request_stream >> method >> target >> version;
+
+    if (method == "CONNECT") {
+        // Handle HTTPS CONNECT request
+        Logger::get_instance().info("Processing HTTPS CONNECT request to: " + target);
         
-        // Log request
-        std::time_t now = std::time(nullptr);
-        std::cout << "\n[" << std::ctime(&now) << "] Request:\n" << request << std::endl;
+        // Parse host and port
+        size_t colon_pos = target.find(':');
+        if (colon_pos == std::string::npos) {
+            Logger::get_instance().error("Invalid CONNECT target format");
+            send_error_response(client_socket, "400 Bad Request");
+            return;
+        }
+
+        std::string host = target.substr(0, colon_pos);
         
-        // Parse the request
-        std::istringstream request_stream(request);
-        std::string method, path, version;
-        request_stream >> method >> path >> version;
-        
-        // Handle CONNECT method (HTTPS)
-        if (method == "CONNECT") {
-            std::string host_port = path;
-            size_t colon_pos = host_port.find(':');
-            if (colon_pos == std::string::npos) {
-                std::cerr << "Invalid CONNECT request" << std::endl;
-                close(client_socket);
-                return;
-            }
-            
-            std::string host = host_port.substr(0, colon_pos);
-            int port = std::stoi(host_port.substr(colon_pos + 1));
-            
-            std::cout << "HTTPS request to " << host << ":" << port << std::endl;
-            
-            // Create connection to target server
-            int target_socket = socket(AF_INET, SOCK_STREAM, 0);
-            if (target_socket < 0) {
-                std::cerr << "Failed to create target socket: " << strerror(errno) << std::endl;
-                close(client_socket);
-                return;
-            }
-            
-            // Resolve hostname
-            struct hostent* host_info = gethostbyname(host.c_str());
-            if (!host_info) {
-                std::cerr << "Failed to resolve hostname: " << host << " - " << hstrerror(h_errno) << std::endl;
-                close(target_socket);
-                close(client_socket);
-                return;
-            }
-            
-            struct sockaddr_in target_addr;
-            memset(&target_addr, 0, sizeof(target_addr));
-            target_addr.sin_family = AF_INET;
-            target_addr.sin_port = htons(port);
-            memcpy(&target_addr.sin_addr, host_info->h_addr, host_info->h_length);
-            
-            if (connect(target_socket, (struct sockaddr*)&target_addr, sizeof(target_addr)) < 0) {
-                std::cerr << "Failed to connect to target server: " << host << ":" << port 
-                         << " - " << strerror(errno) << std::endl;
-                close(target_socket);
-                close(client_socket);
-                return;
-            }
-            
-            // Send 200 Connection Established
-            const char* response = "HTTP/1.1 200 Connection Established\r\n\r\n";
-            send(client_socket, response, strlen(response), 0);
-            
-            std::cout << "HTTPS tunnel established" << std::endl;
-            
-            // Forward data in both directions
-            fd_set read_fds;
-            while (true) {
-                FD_ZERO(&read_fds);
-                FD_SET(client_socket, &read_fds);
-                FD_SET(target_socket, &read_fds);
-                
-                int max_fd = std::max(client_socket, target_socket) + 1;
-                if (select(max_fd, &read_fds, nullptr, nullptr, nullptr) < 0) {
-                    if (errno != EINTR) {
-                        std::cerr << "Select failed: " << strerror(errno) << std::endl;
-                        break;
-                    }
-                    continue;
-                }
-                
-                if (FD_ISSET(client_socket, &read_fds)) {
-                    ssize_t bytes = recv(client_socket, buffer, BUFFER_SIZE, 0);
-                    if (bytes <= 0) break;
-                    if (send(target_socket, buffer, bytes, 0) < 0) {
-                        std::cerr << "Failed to send to target: " << strerror(errno) << std::endl;
-                        break;
-                    }
-                }
-                
-                if (FD_ISSET(target_socket, &read_fds)) {
-                    ssize_t bytes = recv(target_socket, buffer, BUFFER_SIZE, 0);
-                    if (bytes <= 0) break;
-                    if (send(client_socket, buffer, bytes, 0) < 0) {
-                        std::cerr << "Failed to send to client: " << strerror(errno) << std::endl;
-                        break;
-                    }
-                }
-            }
-            
-            std::cout << "HTTPS tunnel closed" << std::endl;
+        // Check if the host should be blocked
+        if (filter_manager_.is_blocked(host)) {
+            Logger::get_instance().info("HTTPS request blocked - host in blacklist: " + host);
+            send_error_response(client_socket, "403 Forbidden");
+            return;
+        }
+
+        int port = std::stoi(target.substr(colon_pos + 1));
+
+        // Create connection to target server
+        int target_socket = create_target_connection(host, port);
+        if (target_socket < 0) {
+            Logger::get_instance().error("Failed to connect to target server: " + host + ":" + std::to_string(port));
+            send_error_response(client_socket, "502 Bad Gateway");
+            return;
+        }
+
+        // Send 200 Connection Established
+        std::string response = "HTTP/1.1 200 Connection Established\r\n\r\n";
+        if (send(client_socket, response.c_str(), response.length(), 0) < 0) {
+            Logger::get_instance().error("Failed to send CONNECT response");
             close(target_socket);
             close(client_socket);
             return;
         }
-        
-        // Handle HTTP request
-        std::string host;
-        std::string line;
-        while (std::getline(request_stream, line) && !line.empty()) {
-            if (line.find("Host:") == 0) {
-                host = line.substr(6);
-                // Remove any whitespace
-                host.erase(0, host.find_first_not_of(" \t\r\n"));
-                host.erase(host.find_last_not_of(" \t\r\n") + 1);
-                break;
-            }
-        }
-        
+
+        // Start bidirectional tunneling
+        tunnel_connection(client_socket, target_socket);
+    } else {
+        // Handle regular HTTP request
+        std::string host = extract_host_from_request(request);
         if (host.empty()) {
-            std::cerr << "No Host header found" << std::endl;
-            close(client_socket);
+            Logger::get_instance().error("No host found in request");
+            send_error_response(client_socket, "400 Bad Request");
             return;
         }
+
+        // Check if the request should be blocked
+        if (filter_manager_.is_blocked(host)) {
+            Logger::get_instance().info("HTTP request blocked - host in blacklist: " + host);
+            send_error_response(client_socket, "403 Forbidden");
+            return;
+        }
+
+        // Process HTTP request (implement your HTTP forwarding logic here)
+        Logger::get_instance().info("Processing HTTP request: " + method + " " + target);
+        send_error_response(client_socket, "501 Not Implemented");
+    }
+
+    close(client_socket);
+}
+
+int ProxyServer::create_target_connection(const std::string& host, int port) {
+    struct addrinfo hints, *result;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    std::string port_str = std::to_string(port);
+    if (getaddrinfo(host.c_str(), port_str.c_str(), &hints, &result) != 0) {
+        Logger::get_instance().error("Failed to resolve host: " + host);
+        return -1;
+    }
+
+    int sock = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    if (sock < 0) {
+        freeaddrinfo(result);
+        return -1;
+    }
+
+    if (connect(sock, result->ai_addr, result->ai_addrlen) < 0) {
+        Logger::get_instance().error("Failed to connect to target server");
+        close(sock);
+        freeaddrinfo(result);
+        return -1;
+    }
+
+    freeaddrinfo(result);
+    return sock;
+}
+
+void ProxyServer::send_error_response(int socket, const std::string& status) {
+    std::string response = "HTTP/1.1 " + status + "\r\n"
+                          "Content-Type: text/plain\r\n"
+                          "Content-Length: " + std::to_string(status.length()) + "\r\n\r\n" +
+                          status;
+    send(socket, response.c_str(), response.length(), 0);
+}
+
+void ProxyServer::tunnel_connection(int client_socket, int target_socket) {
+    fd_set read_fds;
+    char buffer[BUFFER_SIZE];
+    
+    while (true) {
+        FD_ZERO(&read_fds);
+        FD_SET(client_socket, &read_fds);
+        FD_SET(target_socket, &read_fds);
         
-        // Extract port from host if present
-        int port = 80;
+        int max_fd = std::max(client_socket, target_socket);
+        if (select(max_fd + 1, &read_fds, nullptr, nullptr, nullptr) < 0) {
+            Logger::get_instance().error("Select error in tunnel");
+            break;
+        }
+
+        // Client to target
+        if (FD_ISSET(client_socket, &read_fds)) {
+            int bytes = recv(client_socket, buffer, sizeof(buffer), 0);
+            if (bytes <= 0) break;
+            if (send(target_socket, buffer, bytes, 0) <= 0) break;
+        }
+
+        // Target to client
+        if (FD_ISSET(target_socket, &read_fds)) {
+            int bytes = recv(target_socket, buffer, sizeof(buffer), 0);
+            if (bytes <= 0) break;
+            if (send(client_socket, buffer, bytes, 0) <= 0) break;
+        }
+    }
+
+    close(target_socket);
+}
+
+std::string ProxyServer::extract_host_from_request(const std::string& request) {
+    std::regex host_regex("Host:\\s*([^\\r\\n]+)");
+    std::smatch match;
+    if (std::regex_search(request, match, host_regex)) {
+        std::string host = match[1];
+        // Remove port if present
         size_t colon_pos = host.find(':');
         if (colon_pos != std::string::npos) {
-            port = std::stoi(host.substr(colon_pos + 1));
             host = host.substr(0, colon_pos);
         }
-        
-        std::cout << "HTTP request to " << host << ":" << port << std::endl;
-        
-        // Create connection to target server
-        int target_socket = socket(AF_INET, SOCK_STREAM, 0);
-        if (target_socket < 0) {
-            std::cerr << "Failed to create target socket: " << strerror(errno) << std::endl;
-            close(client_socket);
-            return;
-        }
-        
-        // Resolve hostname
-        struct hostent* host_info = gethostbyname(host.c_str());
-        if (!host_info) {
-            std::cerr << "Failed to resolve hostname: " << host << " - " << hstrerror(h_errno) << std::endl;
-            close(target_socket);
-            close(client_socket);
-            return;
-        }
-        
-        struct sockaddr_in target_addr;
-        memset(&target_addr, 0, sizeof(target_addr));
-        target_addr.sin_family = AF_INET;
-        target_addr.sin_port = htons(port);
-        memcpy(&target_addr.sin_addr, host_info->h_addr, host_info->h_length);
-        
-        if (connect(target_socket, (struct sockaddr*)&target_addr, sizeof(target_addr)) < 0) {
-            std::cerr << "Failed to connect to target server: " << host << ":" << port 
-                     << " - " << strerror(errno) << std::endl;
-            close(target_socket);
-            close(client_socket);
-            return;
-        }
-        
-        // Forward the request
-        if (send(target_socket, buffer, bytes_received, 0) < 0) {
-            std::cerr << "Failed to send request: " << strerror(errno) << std::endl;
-            close(target_socket);
-            close(client_socket);
-            return;
-        }
-        
-        // Forward the response
-        char response_buffer[BUFFER_SIZE];
-        ssize_t response_bytes;
-        std::string response_data;
-        while ((response_bytes = recv(target_socket, response_buffer, BUFFER_SIZE, 0)) > 0) {
-            if (send(client_socket, response_buffer, response_bytes, 0) < 0) {
-                std::cerr << "Failed to send response: " << strerror(errno) << std::endl;
-                break;
-            }
-            response_data.append(response_buffer, response_bytes);
-        }
-        
-        if (response_bytes < 0) {
-            std::cerr << "Failed to receive response: " << strerror(errno) << std::endl;
-        }
-        
-        // Log response
-        std::cout << "Response:\n" << response_data << std::endl;
-        
-        close(target_socket);
+        return host;
     }
-    
-    close(client_socket);
+    return "";
 } 

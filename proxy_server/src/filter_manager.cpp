@@ -1,29 +1,64 @@
 #include "filter_manager.hpp"
-#include <algorithm>
+#include "logger.hpp"
+#include <regex>
 
-FilterManager::FilterManager() = default;
+FilterManager::FilterManager() : blacklist_mode_(false) {}
 
-void FilterManager::add_filter(const std::string& name, FilterCallback filter) {
-    filters_.push_back({name, std::move(filter)});
+void FilterManager::set_blacklist_mode(bool enabled) {
+    blacklist_mode_ = enabled;
+    Logger::get_instance().info("Blacklist mode " + std::string(enabled ? "enabled" : "disabled"));
 }
 
-void FilterManager::remove_filter(const std::string& name) {
-    filters_.erase(
-        std::remove_if(filters_.begin(), filters_.end(),
-            [&name](const Filter& f) { return f.name == name; }),
-        filters_.end()
-    );
+void FilterManager::add_blacklist_entry(const std::string& entry) {
+    blacklist_.insert(entry);
+    Logger::get_instance().info("Added blacklist entry: " + entry);
 }
 
-bool FilterManager::apply_filters(const std::string& data) const {
-    for (const auto& filter : filters_) {
-        if (!filter.callback(data)) {
-            return false;
+void FilterManager::remove_blacklist_entry(const std::string& entry) {
+    blacklist_.erase(entry);
+    Logger::get_instance().info("Removed blacklist entry: " + entry);
+}
+
+bool FilterManager::is_blocked(const std::string& url) const {
+    if (!blacklist_mode_) {
+        return false;
+    }
+    
+    // Extract domain from URL
+    std::string domain = url;
+    
+    // Remove protocol if present
+    size_t protocol_end = domain.find("://");
+    if (protocol_end != std::string::npos) {
+        domain = domain.substr(protocol_end + 3);
+    }
+    
+    // Remove path and query parameters
+    size_t path_start = domain.find('/');
+    if (path_start != std::string::npos) {
+        domain = domain.substr(0, path_start);
+    }
+    
+    // Remove port if present
+    size_t port_start = domain.find(':');
+    if (port_start != std::string::npos) {
+        domain = domain.substr(0, port_start);
+    }
+    
+    // Remove www. prefix if present
+    if (domain.substr(0, 4) == "www.") {
+        domain = domain.substr(4);
+    }
+    
+    Logger::get_instance().debug("Checking domain: " + domain);
+    
+    // Check if the domain matches any blacklist entry
+    for (const auto& entry : blacklist_) {
+        if (domain == entry) {
+            Logger::get_instance().info("Domain blocked: " + domain + " (matches blacklist entry: " + entry + ")");
+            return true;
         }
     }
-    return true;
-}
-
-void FilterManager::clear_filters() {
-    filters_.clear();
+    
+    return false;
 } 

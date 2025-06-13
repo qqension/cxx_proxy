@@ -1,19 +1,20 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -pthread
-INCLUDES = -Iinclude
-SOURCES = src/main.cpp src/proxy_server.cpp src/filter_manager.cpp
-OBJECTS = $(SOURCES:.cpp=.o)
+CXXFLAGS = -std=c++17 -Wall -Wextra -I./include -I./third_party
+LDFLAGS = -pthread
+
+SRCS = src/main.cpp src/proxy_server.cpp src/filter_manager.cpp src/web_ui.cpp src/logger.cpp
+OBJS = $(SRCS:.cpp=.o)
 TARGET = proxy_server
 
 all: $(TARGET)
 
-$(TARGET): $(OBJECTS)
-	$(CXX) $(OBJECTS) -o $(TARGET) $(CXXFLAGS)
+$(TARGET): $(OBJS)
+	$(CXX) $(OBJS) -o $(TARGET) $(LDFLAGS)
 
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJECTS) $(TARGET)
+	rm -f $(OBJS) $(TARGET)
 
 .PHONY: all clean 
