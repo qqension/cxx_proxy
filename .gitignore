@@ -4,7 +4,14 @@
 # But not these files/folders
 !proxy_server/
 !proxy_server/src/
+!proxy_server/src/logger.cpp
 !proxy_server/include/
+!proxy_server/src/web_ui.cpp
+!proxy_server/include/logger.hpp
+!proxy_server/include/web_ui.hpp
+!proxy_server/include/web_ui.h
+!proxy_server/third_party/
+!proxy_server/third_party/httplib.h
 !proxy_server/Makefile
 !LICENSE
 !README.md
