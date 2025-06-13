@@ -51,6 +51,7 @@ proxy_server/Makefile.cmake
 proxy_server/*.ninja
 proxy_server/.ninja_deps
 proxy_server/.ninja_log
+proxy_server/Doxyfile.in
 
 # IDE settings
 .vscode/
