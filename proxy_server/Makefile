@@ -6,7 +6,10 @@ SRCS = src/main.cpp src/proxy_server.cpp src/filter_manager.cpp src/web_ui.cpp s
 OBJS = $(SRCS:.cpp=.o)
 TARGET = proxy_server
 
-all: $(TARGET)
+all: $(TARGET) logs_dir
+
+logs_dir:
+	mkdir -p logs
 
 $(TARGET): $(OBJS)
 	$(CXX) $(OBJS) -o $(TARGET) $(LDFLAGS)
@@ -17,4 +20,4 @@ $(TARGET): $(OBJS)
 clean:
 	rm -f $(OBJS) $(TARGET)
 
-.PHONY: all clean 
+.PHONY: all clean logs_dir 

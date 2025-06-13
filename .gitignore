@@ -14,8 +14,11 @@
 !proxy_server/third_party/httplib.h
 !proxy_server/Makefile
 !LICENSE
-!proxy_server/logs/
 !README.md
+
+# Logs directory handling
+!proxy_server/logs/           # Track the logs directory
+proxy_server/logs/*.log       # But ignore all .log files in it
 
 # Ignore specific files in proxy_server
 proxy_server/*.o
@@ -47,7 +50,6 @@ proxy_server/Makefile.cmake
 proxy_server/*.ninja
 proxy_server/.ninja_deps
 proxy_server/.ninja_log
-
 
 # IDE settings
 .vscode/
