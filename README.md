@@ -1,50 +1,78 @@
-# C++ Proxy Server
+# C++ Proxy Server (cxx_proxy)
 
-A modern, high-performance HTTP proxy server written in C++ with filtering capabilities and a web-based management interface. This proxy server is designed to be fast, secure, and easy to configure.
+HSE MIEM student project for a high-performance HTTP/HTTPS proxy server implementation in C++.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Dependencies](#dependencies)
+- [Building the Project](#building-the-project)
+  - [Using CMake](#using-cmake)
+  - [Using Make](#using-make)
+- [Running the Server](#running-the-server)
+- [Configuration](#configuration)
+- [Running Tests](#running-tests)
+- [Project Structure](#project-structure)
+
+---
+
+## Overview
+
+This project implements a robust HTTP/HTTPS proxy server with advanced features including URL filtering, connection pooling, and a modern web interface for monitoring and management.
+
+---
 
 ## Features
 
-- **HTTP/HTTPS Proxy**
-  - Full HTTP/1.1 support
-  - HTTPS tunneling
-  - Connection pooling
-  - Request/response caching
+### HTTP/HTTPS Support
 
-- **URL Filtering**
-  - Blacklist/whitelist support
-  - Case-insensitive domain matching
-  - Subdomain support
-  - Pattern-based filtering
-  - Real-time filter updates
+- Full HTTP/1.1 protocol implementation
+- HTTPS tunneling with SSL/TLS support
+- Connection pooling for improved performance
+- Request/response caching system
 
-- **Web Interface**
-  - Modern, responsive dashboard
-  - Real-time connection monitoring
-  - Filter management
-  - System statistics
-  - Configuration management
+### URL Filtering
 
-- **Security**
-  - Thread-safe implementation
-  - Input validation
-  - Rate limiting
-  - Access control
+- Blacklist/whitelist functionality
+- Case-insensitive domain matching
+- Subdomain support
+- Pattern-based filtering
+- Real-time filter updates
 
-- **Logging & Monitoring**
-  - Configurable log levels
-  - File-based logging
-  - Real-time log viewing
-  - Performance metrics
+### Web Interface
 
-## Prerequisites
+- Modern, responsive dashboard
+- Real-time connection monitoring
+- Filter management interface
+- System statistics display
+- Configuration management
 
-- C++17 compatible compiler:
-  - GCC 7+ or Clang 5+ (Linux/macOS)
-  - MSVC 2019+ (Windows)
+### Security Features
+
+- Thread-safe implementation
+- Input validation
+- Rate limiting
+- Access control mechanisms
+
+### Logging & Monitoring
+
+- Configurable log levels
+- File-based logging
+- Real-time log viewing
+- Performance metrics tracking
+
+---
+
+## Dependencies
+
+To build and run this project, you will need:
+
+- C++17 compatible compiler (GCC 7+, Clang 5+, or MSVC 2019+)
 - CMake 3.10 or higher
-- GTest (for running tests)
+- OpenSSL development libraries
+- Google Test (for testing)
 - Doxygen (optional, for documentation)
-- OpenSSL (for HTTPS support)
 
 ### Installing Dependencies
 
@@ -78,51 +106,44 @@ vcpkg install gtest:x64-windows
 vcpkg install openssl:x64-windows
 ```
 
-## Building
+---
 
-1. Clone the repository:
+## Building the Project
+
+### Using CMake
+
 ```bash
-git clone https://github.com/yourusername/cxx_proxy.git
-cd cxx_proxy
-```
-
-2. Create and enter build directory:
-```bash
-mkdir build && cd build
-```
-
-3. Configure with CMake:
-```bash
-# For Debug build
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-
-# For Release build
+mkdir build
+cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build .
 ```
 
-4. Build the project:
+### Using Make
+
 ```bash
-# Using make (Linux/macOS)
 make -j$(nproc)
-
-# Using Visual Studio (Windows)
-cmake --build . --config Release
 ```
 
-## Running
+---
 
-Start the proxy server:
+## Running the Server
+
+Start the proxy server with default settings:
 ```bash
-# Default port (8080)
 ./proxy_server/proxy_server
+```
 
-# Custom port
+Or specify a custom port:
+```bash
 ./proxy_server/proxy_server 9090
 ```
 
-The server will start and you can access the web interface at `http://localhost:8080` (or your custom port).
+The web interface will be available at `http://localhost:8080` (or your custom port).
 
-### Configuration
+---
+
+## Configuration
 
 The proxy server can be configured through:
 1. Command line arguments
@@ -138,7 +159,9 @@ Available options:
 - Rate limiting
 - SSL certificate paths
 
-## Testing
+---
+
+## Running Tests
 
 Run the test suite:
 ```bash
@@ -152,14 +175,7 @@ make test
 make coverage
 ```
 
-## Documentation
-
-Generate documentation:
-```bash
-make docs
-```
-
-The documentation will be available in the `build/html` directory. Open `index.html` in your browser to view it.
+---
 
 ## Project Structure
 
@@ -184,39 +200,6 @@ proxy_server/
 │   └── httplib.h
 └── CMakeLists.txt    # CMake build configuration
 ```
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-
-- Follow the existing code style
-- Write unit tests for new features
-- Update documentation as needed
-- Use meaningful commit messages
-- Keep commits focused and atomic
-
-## Troubleshooting
-
-Common issues and solutions:
-
-1. **Build fails with OpenSSL errors**
-   - Ensure OpenSSL development libraries are installed
-   - Check OpenSSL paths in CMake configuration
-
-2. **Tests fail on Windows**
-   - Ensure GTest is properly installed via vcpkg
-   - Check PATH includes GTest DLL location
-
-3. **Proxy not accepting connections**
-   - Check if port is already in use
-   - Verify firewall settings
-   - Check server logs for errors
 
 ## License
 
