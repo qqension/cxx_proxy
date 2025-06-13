@@ -1,0 +1,37 @@
+# Doxyfile.in for proxy_server project
+
+PROJECT_NAME           = "C++ Proxy Server"
+PROJECT_NUMBER         = 1.0.0
+PROJECT_BRIEF          = "A C++ HTTP/HTTPS proxy server with web UI and filter management."
+OUTPUT_DIRECTORY       = ${CMAKE_CURRENT_BINARY_DIR}/doc
+CREATE_SUBDIRS         = NO
+
+INPUT                  = ../README.md ../proxy_server/include ../proxy_server/src
+FILE_PATTERNS          = *.cpp *.hpp *.md
+RECURSIVE              = YES
+
+USE_MDFILE_AS_MAINPAGE = ../README.md
+
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+GENERATE_LATEX         = NO
+
+GENERATE_TREEVIEW      = YES
+FULL_PATH_NAMES        = NO
+
+# Dot settings for diagrams
+HAVE_DOT               = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+DOT_NUM_THREADS        = 2
+
+# Source code browsing
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = YES
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES 

@@ -13,6 +13,9 @@
 !proxy_server/third_party/
 !proxy_server/third_party/httplib.h
 !proxy_server/Makefile
+!proxy_server/Doxyfile
+!proxy_server/CMakeLists.txt
+!proxy_server/tests/*
 !LICENSE
 !README.md
 
@@ -50,6 +53,7 @@ proxy_server/Makefile.cmake
 proxy_server/*.ninja
 proxy_server/.ninja_deps
 proxy_server/.ninja_log
+proxy_server/Doxyfile.in
 
 # IDE settings
 .vscode/
@@ -66,4 +70,156 @@ proxy_server/.ninja_log
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db 
+Thumbs.db
+
+# Build directories
+build/
+out/
+cmake-build-*/
+bin/
+lib/
+Debug/
+Release/
+x64/
+x86/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+Testing/
+CMakeScripts/
+*.cmake
+!CMakeLists.txt
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.sublime-workspace
+*.sublime-project
+.project
+.classpath
+.settings/
+*.code-workspace
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+*.elf
+*.bin
+
+# Precompiled Headers
+*.gch
+*.pch
+*.pchi
+*.i
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+*.dylib.*
+*.so.*
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+*.def
+*.exp
+
+# Executables
+*.exe
+*.out
+*.app
+*.i686
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+*.ilk
+*.map
+*.exp
+*.manifest
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.tmp
+*.temp
+
+# Log files
+*.log
+logs/
+log/
+*.log.*
+
+# Doxygen generated documentation
+doc/
+docs/
+html/
+latex/
+*.tag
+*.md5
+*.map
+*.css
+*.js
+*.dot
+*.sqlite3
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Project specific
+proxy_server/logs/
+proxy_server/build/
+proxy_server/compile_commands.json
+proxy_server/.cache/
+
+# Keep specific files
+!proxy_server/third_party/httplib.h
+!proxy_server/Doxyfile.in
+!proxy_server/CMakeLists.txt
+
+# Dependencies
+deps/
+external/
+third_party/*
+!third_party/httplib.h
+!third_party/CMakeLists.txt
+
+# Test coverage
+coverage/
+*.gcno
+*.gcda
+*.gcov
+*.info
+
+# Test coverage
+coverage/
+*.gcno
+*.gcda
+*.gcov
+*.info 

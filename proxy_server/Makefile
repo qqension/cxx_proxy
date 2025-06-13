@@ -20,4 +20,10 @@ $(TARGET): $(OBJS)
 clean:
 	rm -f $(OBJS) $(TARGET)
 
-.PHONY: all clean logs_dir 
+docs:
+	doxygen Doxyfile
+
+clean_docs:
+	rm -rf doc
+
+.PHONY: all clean logs_dir docs clean_docs 
