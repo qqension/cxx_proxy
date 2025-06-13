@@ -30,37 +30,11 @@ This project implements a robust HTTP/HTTPS proxy server with advanced features 
 - Full HTTP/1.1 protocol implementation
 - HTTPS tunneling with SSL/TLS support
 - Connection pooling for improved performance
-- Request/response caching system
-
-### URL Filtering
-
-- Blacklist/whitelist functionality
-- Case-insensitive domain matching
-- Subdomain support
-- Pattern-based filtering
-- Real-time filter updates
 
 ### Web Interface
 
-- Modern, responsive dashboard
-- Real-time connection monitoring
-- Filter management interface
-- System statistics display
-- Configuration management
-
-### Security Features
-
-- Thread-safe implementation
-- Input validation
-- Rate limiting
-- Access control mechanisms
-
-### Logging & Monitoring
-
-- Configurable log levels
-- File-based logging
-- Real-time log viewing
-- Performance metrics tracking
+- Add/remove blacklist
+- Logs
 
 ---
 
