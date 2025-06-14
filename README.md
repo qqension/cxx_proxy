@@ -107,8 +107,8 @@ The proxy server can be configured through:
 
 Run the test suite:
 ```bash
-# Run all tests
-make test
+# Run all tests in build
+./test_runer
 
 ```
 
