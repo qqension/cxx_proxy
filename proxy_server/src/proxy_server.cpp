@@ -14,7 +14,7 @@
 ProxyServer::ProxyServer(uint16_t port, FilterManager& filter_manager)
     : port_(port), server_socket_(-1), running_(false), filter_manager_(filter_manager) {
     Logger::get_instance().info("Proxy server initialized on port " + std::to_string(port));
-    filter_manager_.set_blacklist_mode(true);  // Enable blacklist mode by default
+    filter_manager_.set_blacklist_mode(true);  //  toggle blacklist mode
 }
 
 ProxyServer::~ProxyServer() {

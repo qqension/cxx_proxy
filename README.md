@@ -1,6 +1,6 @@
 # C++ Proxy Server (cxx_proxy)
 
-HSE MIEM student project for a high-performance HTTP/HTTPS proxy server implementation in C++.
+HSE MIEM student project for a HTTP/HTTPS proxy server implementation in C++.
 
 ## Table of Contents
 
@@ -19,20 +19,14 @@ HSE MIEM student project for a high-performance HTTP/HTTPS proxy server implemen
 
 ## Overview
 
-This project implements a robust HTTP/HTTPS proxy server with advanced features including URL filtering, connection pooling, and a modern web interface for monitoring and management.
+This project implements a HTTP/HTTPS proxy with web page (have blacklist manager and logs window).
 
 ---
 
 ## Features
 
-### HTTP/HTTPS Support
-
-- Full HTTP/1.1 protocol implementation
-- HTTPS tunneling with SSL/TLS support
-- Connection pooling for improved performance
-
+- HTTP/HTTPS Support
 ### Web Interface
-
 - Add/remove blacklist
 - Logs
 
@@ -78,14 +72,14 @@ vcpkg install openssl:x64-windows
 ```bash
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake ..
 cmake --build .
 ```
 
 ### Using Make
 
 ```bash
-make -j$(nproc)
+make 
 ```
 
 ---
@@ -94,7 +88,7 @@ make -j$(nproc)
 
 Or specify a custom port:
 ```bash
-./proxy_server/proxy_server [server port] [web port]
+./proxy_server/proxy_server [proxy_server_port] [web_ui_port]
 ```
 
 ---
@@ -104,16 +98,6 @@ Or specify a custom port:
 The proxy server can be configured through:
 1. Command line arguments
 2. Web interface
-3. Configuration file
-
-Available options:
-- Port number
-- Blacklist/whitelist mode
-- Logging level
-- Maximum connections
-- Cache size
-- Rate limiting
-- SSL certificate paths
 
 ---
 
@@ -124,11 +108,6 @@ Run the test suite:
 # Run all tests
 make test
 
-# Run specific test
-./test_runner --gtest_filter=FilterManagerTest.*
-
-# Run with coverage (requires gcov/lcov)
-make coverage
 ```
 
 ---
@@ -161,8 +140,8 @@ proxy_server/
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## Using 
 
 - [cpp-httplib](https://github.com/yhirose/cpp-httplib) for the HTTP server implementation
 - [Google Test](https://github.com/google/googletest) for the testing framework
-- [OpenSSL](https://www.openssl.org/) for SSL/TLS support
+

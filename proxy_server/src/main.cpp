@@ -17,12 +17,10 @@ int main(int argc, char* argv[]) {
     ProxyServer server(proxy_port, filter_manager);
     WebUI web_ui(web_ui_port, filter_manager);
 
-    // Start the web UI in a separate thread
     std::thread web_thread([&web_ui]() {
         web_ui.start();
     });
 
-    // Start the proxy server in the main thread
     server.start();
 
     web_thread.join();
