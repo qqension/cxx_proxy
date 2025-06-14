@@ -176,7 +176,6 @@ void ProxyServer::handle_connection(int client_socket) {
             return;
         }
 
-        // Extract port from host if specified, default to 80
         int port = 80;
         size_t colon_pos = host.find(':');
         if (colon_pos != std::string::npos) {
@@ -184,7 +183,6 @@ void ProxyServer::handle_connection(int client_socket) {
             host = host.substr(0, colon_pos);
         }
 
-        // Create connection to target server
         int target_socket = create_target_connection(host, port);
         if (target_socket < 0) {
             Logger::get_instance().error("Failed to connect to target server: " + host + ":" + std::to_string(port));
@@ -192,7 +190,6 @@ void ProxyServer::handle_connection(int client_socket) {
             return;
         }
 
-        // Forward the request to the target server
         if (send(target_socket, request.c_str(), request.length(), 0) < 0) {
             Logger::get_instance().error("Failed to forward request to target server");
             close(target_socket);
@@ -200,7 +197,7 @@ void ProxyServer::handle_connection(int client_socket) {
             return;
         }
 
-        // Forward response from target server back to client
+        // Forward response from target 
         char response_buffer[BUFFER_SIZE];
         int bytes_read;
         while ((bytes_read = recv(target_socket, response_buffer, sizeof(response_buffer) - 1, 0)) > 0) {
