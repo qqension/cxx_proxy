@@ -24,35 +24,29 @@ bool FilterManager::is_blocked(const std::string& url) const {
         return false;
     }
     
-    // Extract domain from URL
     std::string domain = url;
     
-    // Remove protocol if present
     size_t protocol_end = domain.find("://");
     if (protocol_end != std::string::npos) {
         domain = domain.substr(protocol_end + 3);
     }
     
-    // Remove path and query parameters
     size_t path_start = domain.find('/');
     if (path_start != std::string::npos) {
         domain = domain.substr(0, path_start);
     }
     
-    // Remove port if present
     size_t port_start = domain.find(':');
     if (port_start != std::string::npos) {
         domain = domain.substr(0, port_start);
     }
     
-    // Remove www. prefix if present
     if (domain.substr(0, 4) == "www.") {
         domain = domain.substr(4);
     }
     
     Logger::get_instance().debug("Checking domain: " + domain);
     
-    // Check if the domain matches any blacklist entry
     for (const auto& entry : blacklist_) {
         if (domain == entry) {
             Logger::get_instance().info("Domain blocked: " + domain + " (matches blacklist entry: " + entry + ")");

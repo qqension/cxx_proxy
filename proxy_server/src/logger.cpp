@@ -12,15 +12,12 @@ Logger& Logger::get_instance() {
 }
 
 Logger::Logger() {
-    // Get the build directory path
     auto build_dir = std::filesystem::current_path();
     auto logs_dir = build_dir / "logs";
     auto log_file_path = logs_dir / "proxy.log";
     
-    // Create logs directory if it doesn't exist
     std::filesystem::create_directories(logs_dir);
     
-    // Open log file
     log_file_.open(log_file_path, std::ios::app);
 }
 
@@ -57,10 +54,9 @@ void Logger::log(LogLevel level, const std::string& message) {
 
     std::string log_message = get_timestamp() + " [" + level_str + "] " + message;
 
-    // Console output
     std::cout << log_message << std::endl;
 
-    // File output
+    // output logs
     if (log_file_.is_open()) {
         log_file_ << log_message << std::endl;
         log_file_.flush();

@@ -93,14 +93,12 @@ void ProxyServer::accept_connections() {
             continue;
         }
 
-        // Clean up finished threads
         worker_threads_.erase(
             std::remove_if(worker_threads_.begin(), worker_threads_.end(),
                 [](std::thread& t) { return !t.joinable(); }),
             worker_threads_.end()
         );
 
-        // Start new thread for handling the connection
         worker_threads_.emplace_back(&ProxyServer::handle_connection, this, client_socket);
     }
 }
@@ -119,7 +117,6 @@ void ProxyServer::handle_connection(int client_socket) {
     std::string request(buffer);
     Logger::get_instance().debug("Received request:\n" + request);
 
-    // Parse the request
     std::istringstream request_stream(request);
     std::string method, target, version;
     request_stream >> method >> target >> version;
@@ -128,7 +125,6 @@ void ProxyServer::handle_connection(int client_socket) {
         // Handle HTTPS CONNECT request
         Logger::get_instance().info("Processing HTTPS CONNECT request to: " + target);
         
-        // Parse host and port
         size_t colon_pos = target.find(':');
         if (colon_pos == std::string::npos) {
             Logger::get_instance().error("Invalid CONNECT target format");
@@ -138,7 +134,7 @@ void ProxyServer::handle_connection(int client_socket) {
 
         std::string host = target.substr(0, colon_pos);
         
-        // Check if the host should be blocked
+        // Check blocked host
         if (filter_manager_.is_blocked(host)) {
             Logger::get_instance().info("HTTPS request blocked - host in blacklist: " + host);
             send_error_response(client_socket, "403 Forbidden");
@@ -147,7 +143,7 @@ void ProxyServer::handle_connection(int client_socket) {
 
         int port = std::stoi(target.substr(colon_pos + 1));
 
-        // Create connection to target server
+        // Create connection to server
         int target_socket = create_target_connection(host, port);
         if (target_socket < 0) {
             Logger::get_instance().error("Failed to connect to target server: " + host + ":" + std::to_string(port));
@@ -155,7 +151,7 @@ void ProxyServer::handle_connection(int client_socket) {
             return;
         }
 
-        // Send 200 Connection Established
+        // Send 200 Connection 
         std::string response = "HTTP/1.1 200 Connection Established\r\n\r\n";
         if (send(client_socket, response.c_str(), response.length(), 0) < 0) {
             Logger::get_instance().error("Failed to send CONNECT response");
@@ -164,7 +160,6 @@ void ProxyServer::handle_connection(int client_socket) {
             return;
         }
 
-        // Start bidirectional tunneling
         tunnel_connection(client_socket, target_socket);
     } else {
         // Handle regular HTTP request
@@ -175,16 +170,48 @@ void ProxyServer::handle_connection(int client_socket) {
             return;
         }
 
-        // Check if the request should be blocked
         if (filter_manager_.is_blocked(host)) {
             Logger::get_instance().info("HTTP request blocked - host in blacklist: " + host);
             send_error_response(client_socket, "403 Forbidden");
             return;
         }
 
-        // Process HTTP request (implement your HTTP forwarding logic here)
-        Logger::get_instance().info("Processing HTTP request: " + method + " " + target);
-        send_error_response(client_socket, "501 Not Implemented");
+        // Extract port from host if specified, default to 80
+        int port = 80;
+        size_t colon_pos = host.find(':');
+        if (colon_pos != std::string::npos) {
+            port = std::stoi(host.substr(colon_pos + 1));
+            host = host.substr(0, colon_pos);
+        }
+
+        // Create connection to target server
+        int target_socket = create_target_connection(host, port);
+        if (target_socket < 0) {
+            Logger::get_instance().error("Failed to connect to target server: " + host + ":" + std::to_string(port));
+            send_error_response(client_socket, "502 Bad Gateway");
+            return;
+        }
+
+        // Forward the request to the target server
+        if (send(target_socket, request.c_str(), request.length(), 0) < 0) {
+            Logger::get_instance().error("Failed to forward request to target server");
+            close(target_socket);
+            send_error_response(client_socket, "502 Bad Gateway");
+            return;
+        }
+
+        // Forward response from target server back to client
+        char response_buffer[BUFFER_SIZE];
+        int bytes_read;
+        while ((bytes_read = recv(target_socket, response_buffer, sizeof(response_buffer) - 1, 0)) > 0) {
+            response_buffer[bytes_read] = '\0';
+            if (send(client_socket, response_buffer, bytes_read, 0) < 0) {
+                Logger::get_instance().error("Failed to send response to client");
+                break;
+            }
+        }
+
+        close(target_socket);
     }
 
     close(client_socket);
@@ -265,7 +292,6 @@ std::string ProxyServer::extract_host_from_request(const std::string& request) {
     std::smatch match;
     if (std::regex_search(request, match, host_regex)) {
         std::string host = match[1];
-        // Remove port if present
         size_t colon_pos = host.find(':');
         if (colon_pos != std::string::npos) {
             host = host.substr(0, colon_pos);
